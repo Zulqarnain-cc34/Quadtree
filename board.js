@@ -80,7 +80,14 @@ class Rectangle {
 }
 
 class QuadTree {
-  constructor(boundary, capacity) {
+  // Maximum subdivision depth. Without this limit, inserting more than
+  // `capacity` points at the same (or extremely close) coordinates would
+  // subdivide forever: every duplicate falls into the same child, which is
+  // immediately full again, recursing until the call stack overflows.
+  // At max depth a node simply keeps storing points instead of subdividing.
+  static DEFAULT_MAX_DEPTH = 8;
+
+  constructor(boundary, capacity, depth = 0, maxDepth = QuadTree.DEFAULT_MAX_DEPTH) {
     if (!(boundary instanceof Rectangle)) {
       throw new TypeError("QuadTree boundary must be a Rectangle.");
     }
@@ -89,8 +96,18 @@ class QuadTree {
       throw new TypeError("QuadTree capacity must be a positive integer.");
     }
 
+    if (!Number.isInteger(depth) || depth < 0) {
+      throw new TypeError("QuadTree depth must be a non-negative integer.");
+    }
+
+    if (!Number.isInteger(maxDepth) || maxDepth < 0) {
+      throw new TypeError("QuadTree maxDepth must be a non-negative integer.");
+    }
+
     this.boundary = boundary;
     this.capacity = capacity;
+    this.depth = depth;
+    this.maxDepth = maxDepth;
     this.points = [];
     this.divided = false;
 
@@ -110,6 +127,14 @@ class QuadTree {
     }
 
     if (this.points.length < this.capacity) {
+      this.points.push(point);
+      return true;
+    }
+
+    // The node is full. If we have hit the depth limit, stop subdividing and
+    // store the point here anyway. This keeps duplicate/dense points from
+    // recursing forever; such a leaf is simply allowed to exceed capacity.
+    if (this.depth >= this.maxDepth) {
       this.points.push(point);
       return true;
     }
@@ -144,10 +169,11 @@ class QuadTree {
     const southwest = new Rectangle(x - childWidth, y + childHeight, childWidth, childHeight);
     const southeast = new Rectangle(x + childWidth, y + childHeight, childWidth, childHeight);
 
-    this.northwest = new QuadTree(northwest, this.capacity);
-    this.northeast = new QuadTree(northeast, this.capacity);
-    this.southwest = new QuadTree(southwest, this.capacity);
-    this.southeast = new QuadTree(southeast, this.capacity);
+    const childDepth = this.depth + 1;
+    this.northwest = new QuadTree(northwest, this.capacity, childDepth, this.maxDepth);
+    this.northeast = new QuadTree(northeast, this.capacity, childDepth, this.maxDepth);
+    this.southwest = new QuadTree(southwest, this.capacity, childDepth, this.maxDepth);
+    this.southeast = new QuadTree(southeast, this.capacity, childDepth, this.maxDepth);
     this.divided = true;
   }
 

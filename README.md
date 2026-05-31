@@ -1,16 +1,16 @@
-# Quartree
+# Quadtree
 
-**Quartree** is an interactive p5.js quadtree visualization that makes spatial partitioning easy to see, click, and understand.
+**Quadtree** is an interactive p5.js quadtree visualization that makes spatial partitioning easy to see, click, and understand.
 
 Click on the canvas to add points, watch the space split into quadrants, and move the mouse to query nearby points in real time.
 
 ## Preview
 
-![Quartree Preview](assets/demo.png)
+![Quadtree Preview](assets/demo.png)
 
 ## What It Shows
 
-Quartree demonstrates how a quadtree organizes 2D space.
+Quadtree demonstrates how a quadtree organizes 2D space.
 
 Instead of checking every point on the canvas, the quadtree divides the canvas into smaller rectangles. When you search an area, it skips rectangles that cannot contain useful points and checks only the relevant regions.
 
